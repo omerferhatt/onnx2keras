@@ -8,6 +8,8 @@ import inspect
 import collections
 from onnx import numpy_helper
 
+import numpy as np
+
 from .layers import AVAILABLE_CONVERTERS
 
 
@@ -49,8 +51,8 @@ def onnx_to_keras(onnx_model, input_names,
     :return: Keras model
     """
     # Use channels first format by default.
-    keras_fmt = keras.backend.image_data_format()
-    keras.backend.set_image_data_format('channels_first')
+    # keras_fmt = keras.backend.image_data_format()
+    # keras.backend.set_image_data_format('channels_first')
 
     if verbose:
         logging.basicConfig(level=logging.DEBUG)
@@ -83,8 +85,13 @@ def onnx_to_keras(onnx_model, input_names,
                 onnx_extracted_weights_name = onnx_w.ListFields()[1][1]
             else:
                 onnx_extracted_weights_name = onnx_w.ListFields()[2][1]
+            
+            if onnx_extracted_weights_name.startswith('/'):
+                onnx_extracted_weights_name = onnx_extracted_weights_name[1:]
             weights[onnx_extracted_weights_name] = numpy_helper.to_array(onnx_w)
         except:
+            if onnx_extracted_weights_name.startswith('/'):
+                onnx_extracted_weights_name = onnx_extracted_weights_name[1:]
             onnx_extracted_weights_name = onnx_w.ListFields()[3][1]
             weights[onnx_extracted_weights_name] = numpy_helper.to_array(onnx_w)
 
@@ -103,15 +110,16 @@ def onnx_to_keras(onnx_model, input_names,
                 if input_shapes:
                     input_shape = input_shapes[i]
                 else:
-                    input_shape = [i.dim_value for i in onnx_i.type.tensor_type.shape.dim][1:]
+                    channels, *size = [i.dim_value for i in onnx_i.type.tensor_type.shape.dim][1:]
 
                 layers[input_name] = keras.layers.InputLayer(
-                    input_shape=input_shape, name=input_name
+                    input_shape=[*size, channels], batch_size=1, name=input_name
                 ).output
 
                 keras_inputs.append(layers[input_name])
 
-                logger.debug('Found input {0} with shape {1}'.format(input_name, input_shape))
+                logger.debug('Found input {0} with shape {1}'.format(input_name, [*size, channels]))
+                logger.debug('Shape transposed to channel last')
 
     # Convert every operation separable
     node_names = []
@@ -122,6 +130,13 @@ def onnx_to_keras(onnx_model, input_names,
         # Add global converter info:
         node_params['change_ordering'] = change_ordering
         node_params['name_policy'] = name_policy
+
+        for i, _input_name in enumerate(node.input):
+            if _input_name.startswith('/'):
+                node.input[i] = _input_name[1:]
+        for i, _output_name in enumerate(node.output):
+            if _output_name.startswith('/'):
+                node.output[i] = _output_name[1:]
 
         node_name = str(node.output[0])
         keras_names = []
@@ -172,7 +187,6 @@ def onnx_to_keras(onnx_model, input_names,
         else:
             logger.debug('... found all, continue')
 
-        keras.backend.set_image_data_format('channels_first')
         AVAILABLE_CONVERTERS[node_type](
             node,
             node_params,
@@ -273,7 +287,7 @@ def onnx_to_keras(onnx_model, input_names,
                 kerasf[1] = tuple(dargs)
                 layer['config']['function'] = tuple(kerasf)
 
-        keras.backend.set_image_data_format('channels_last')
+        # keras.backend.set_image_data_format('channels_last')
         model_tf_ordering = keras.models.Model.from_config(conf)
 
         for dst_layer, src_layer, conf in zip(model_tf_ordering.layers, model.layers, conf['layers']):
@@ -285,6 +299,6 @@ def onnx_to_keras(onnx_model, input_names,
 
         model = model_tf_ordering
 
-    keras.backend.set_image_data_format(keras_fmt)
+    # keras.backend.set_image_data_format(keras_fmt)
 
     return model

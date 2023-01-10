@@ -100,24 +100,30 @@ def convert_concat(node, params, layers, lambda_func, node_name, keras_name):
     """
     logger = logging.getLogger('onnx2keras.concat')
 
+    axis = params['axis']
+    if axis == 1:
+        axis = -1
+    elif axis == -1 or axis == 3:
+        axis = 1
+
     layer_input = [layers[node.input[i]] for i in range(len(node.input))]
 
     if all([is_numpy(layers[node.input[i]]) for i in range(len(node.input))]):
         logger.debug('Concat numpy arrays.')
-        layers[node_name] = np.concatenate(layer_input, axis=params['axis'])
+        layers[node_name] = np.concatenate(layer_input, axis=axis)
     else:
         logger.debug('Concat Keras layers.')
         if len(layer_input) > 1:
             try:
                 layers[node_name] = keras.layers.concatenate(inputs=layer_input,
-                                                             axis=params['axis'],
+                                                             axis=axis,
                                                              name=keras_name)
             except:
                 logger.warning('!!! IMPORTANT INFORMATION !!!')
                 logger.warning('Something goes wrong with concat layers. Will use TF fallback.')
                 logger.warning('---')
 
-                def target_layer(x, axis=params['axis']):
+                def target_layer(x, axis=axis):
                     import tensorflow as tf
                     x = tf.concat(x, axis=axis)
                     return x

@@ -13,6 +13,7 @@ from .normalization_layers import convert_batchnorm, convert_instancenorm, conve
 from .pooling_layers import convert_avgpool, convert_maxpool, convert_global_avg_pool
 from .padding_layers import convert_padding
 from .upsampling_layers import convert_upsample
+from .resizing_layers import convert_resizing
 
 
 AVAILABLE_CONVERTERS = {
@@ -70,4 +71,5 @@ AVAILABLE_CONVERTERS = {
     'Pad': convert_padding,
     'Flatten': convert_flatten,
     'Upsample': convert_upsample,
+    'Resize': convert_resizing,
 }

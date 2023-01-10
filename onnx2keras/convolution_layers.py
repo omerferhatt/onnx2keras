@@ -86,7 +86,6 @@ def convert_conv(node, params, layers, lambda_func, node_name, keras_name):
             padding_layer = keras.layers.ZeroPadding2D(
                 padding=padding,
                 name=padding_name,
-                data_format='channels_first'
             )
             layers[padding_name] = input_0 = padding_layer(input_0)
 
