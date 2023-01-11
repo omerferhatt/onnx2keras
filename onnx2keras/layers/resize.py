@@ -1,8 +1,15 @@
-from tensorflow import keras
-import numpy as np
+from functools import partial
 import logging
 
+from tensorflow import keras
+import numpy as np
 
+from . import register_converter
+
+register_converter = partial(register_converter, converter_type=__name__)
+
+
+@register_converter("Resize")
 def convert_resizing(node, params, layers, lambda_func, node_name, keras_name):
     """
     Convert resize.
@@ -14,21 +21,21 @@ def convert_resizing(node, params, layers, lambda_func, node_name, keras_name):
     :param keras_name: resulting layer name
     :return: None
     """
-    logger = logging.getLogger('onnx2keras.resize')
-    logger.warning('!!! EXPERIMENTAL SUPPORT (resize) !!!')
+    logger = logging.getLogger("onnx2keras.resize")
+    logger.warning("!!! EXPERIMENTAL SUPPORT (resize) !!!")
 
-    if 'mode' in params:
-        mode = params['mode'].decode('utf-8')
-        if mode == 'linear':
-            mode = 'bilinear'
+    if "mode" in params:
+        mode = params["mode"].decode("utf-8")
+        if mode == "linear":
+            mode = "bilinear"
     else:
-        mode = 'bilinear'
+        mode = "bilinear"
 
-    if 'cubic_coeff_a' in params:
-        cubic_coeff = params['cubic_coeff_a']
+    if "cubic_coeff_a" in params:
+        cubic_coeff = params["cubic_coeff_a"]
     else:
         cubic_coeff = -0.5
-    
+
     # roi = layers[node.input[1]]
     scales = layers[node.input[2]]
     if len(node.input) > 3:
@@ -41,10 +48,12 @@ def convert_resizing(node, params, layers, lambda_func, node_name, keras_name):
     elif any(scales):
         size_x, size_y = scales[-2:] * np.array(layers[node.input[0]].shape[1:3])
     else:
-        raise ValueError('No sizes or scales provided for resizing.')
+        raise ValueError("No sizes or scales provided for resizing.")
 
     resizing = keras.layers.Resizing(
-        height=int(size_x), width=int(size_y), name=keras_name, 
+        height=int(size_x),
+        width=int(size_y),
+        name=keras_name,
     )
 
     layers[node_name] = resizing(layers[node.input[0]])

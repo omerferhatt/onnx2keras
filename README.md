@@ -1,15 +1,8 @@
 # onnx2keras
 
-ONNX to Keras deep neural network converter. 
+ONNX to Keras deep neural network converter.
 
-[![GitHub License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Python Version](https://img.shields.io/badge/python-2.7%2C3.6-lightgrey.svg)](https://github.com/gmalivenko/onnx2keras)
-[![Downloads](https://pepy.tech/badge/onnx2keras)](https://pepy.tech/project/onnx2keras)
-![PyPI](https://img.shields.io/pypi/v/onnx2keras.svg)
-
-## Requirements
-
-TensorFlow 2.0
+---
 
 ## API
 
@@ -21,12 +14,9 @@ TensorFlow 2.0
 
 `input_shapes`: override input shapes (experimental)
 
-`name_policy`: ['renumerate', 'short', 'default'] override layer names (experimental)
-
 `verbose`: detailed output
 
-`change_ordering:` change ordering to HWC (experimental)
-
+---
 
 ## Getting started
 

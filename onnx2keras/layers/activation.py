@@ -1,8 +1,16 @@
+from functools import partial
+
 from tensorflow import keras
-import logging
-from .utils import ensure_tf_type, ensure_numpy_type
+
+from . import register_converter
+from ..utils.numpy_helpers import ensure_numpy_type
+from ..utils.tensorflow_helpers import ensure_tf_type
 
 
+register_converter = partial(register_converter, converter_type=__name__)
+
+
+@register_converter("Relu")
 def convert_relu(node, params, layers, lambda_func, node_name, keras_name):
     """
     Convert ReLU activation layer
@@ -15,14 +23,15 @@ def convert_relu(node, params, layers, lambda_func, node_name, keras_name):
     :return: None
     """
     if len(node.input) != 1:
-        assert AttributeError('More than 1 input for an activation layer.')
+        assert AttributeError("More than 1 input for an activation layer.")
 
     input_0 = ensure_tf_type(layers[node.input[0]], name="%s_const" % keras_name)
 
-    relu = keras.layers.Activation('relu', name=keras_name)
+    relu = keras.layers.Activation("relu", name=keras_name)
     layers[node_name] = relu(input_0)
 
 
+@register_converter("Elu")
 def convert_elu(node, params, layers, lambda_func, node_name, keras_name):
     """
     Convert ELU activation layer
@@ -35,15 +44,15 @@ def convert_elu(node, params, layers, lambda_func, node_name, keras_name):
     :return: None
     """
     if len(node.input) != 1:
-        assert AttributeError('More than 1 input for an activation layer.')
+        assert AttributeError("More than 1 input for an activation layer.")
 
     input_0 = ensure_tf_type(layers[node.input[0]], name="%s_const" % keras_name)
 
-    elu = \
-        keras.layers.ELU(alpha=params['alpha'], name=keras_name)
+    elu = keras.layers.ELU(alpha=params["alpha"], name=keras_name)
     layers[node_name] = elu(input_0)
 
 
+@register_converter("LeakyRelu")
 def convert_lrelu(node, params, layers, lambda_func, node_name, keras_name):
     """
     Convert LeakyReLU activation layer
@@ -56,15 +65,15 @@ def convert_lrelu(node, params, layers, lambda_func, node_name, keras_name):
     :return: None
     """
     if len(node.input) != 1:
-        assert AttributeError('More than 1 input for an activation layer.')
+        assert AttributeError("More than 1 input for an activation layer.")
 
     input_0 = ensure_tf_type(layers[node.input[0]], name="%s_const" % keras_name)
 
-    leakyrelu = \
-        keras.layers.LeakyReLU(alpha=params['alpha'], name=keras_name)
+    leakyrelu = keras.layers.LeakyReLU(alpha=params["alpha"], name=keras_name)
     layers[node_name] = leakyrelu(input_0)
 
 
+@register_converter("Sigmoid")
 def convert_sigmoid(node, params, layers, lambda_func, node_name, keras_name):
     """
     Convert Sigmoid activation layer
@@ -77,14 +86,15 @@ def convert_sigmoid(node, params, layers, lambda_func, node_name, keras_name):
     :return: None
     """
     if len(node.input) != 1:
-        assert AttributeError('More than 1 input for an activation layer.')
+        assert AttributeError("More than 1 input for an activation layer.")
 
     input_0 = ensure_tf_type(layers[node.input[0]], name="%s_const" % keras_name)
 
-    sigmoid = keras.layers.Activation('sigmoid', name=keras_name)
+    sigmoid = keras.layers.Activation("sigmoid", name=keras_name)
     layers[node_name] = sigmoid(input_0)
 
 
+@register_converter("Tanh")
 def convert_tanh(node, params, layers, lambda_func, node_name, keras_name):
     """
     Convert Tanh activation layer
@@ -97,14 +107,15 @@ def convert_tanh(node, params, layers, lambda_func, node_name, keras_name):
     :return: None
     """
     if len(node.input) != 1:
-        assert AttributeError('More than 1 input for an activation layer.')
+        assert AttributeError("More than 1 input for an activation layer.")
 
     input_0 = ensure_tf_type(layers[node.input[0]], name="%s_const" % keras_name)
 
-    tanh = keras.layers.Activation('tanh', name=keras_name)
+    tanh = keras.layers.Activation("tanh", name=keras_name)
     layers[node_name] = tanh(input_0)
 
 
+@register_converter("Selu")
 def convert_selu(node, params, layers, lambda_func, node_name, keras_name):
     """
     Convert SELU activation layer
@@ -117,14 +128,15 @@ def convert_selu(node, params, layers, lambda_func, node_name, keras_name):
     :return: None
     """
     if len(node.input) != 1:
-        assert AttributeError('More than 1 input for an activation layer.')
+        assert AttributeError("More than 1 input for an activation layer.")
 
     input_0 = ensure_tf_type(layers[node.input[0]], name="%s_const" % keras_name)
 
-    selu = keras.layers.Activation('selu', name=keras_name)
+    selu = keras.layers.Activation("selu", name=keras_name)
     layers[node_name] = selu(input_0)
 
 
+@register_converter("Softmax")
 def convert_softmax(node, params, layers, lambda_func, node_name, keras_name):
     """
     Convert softmax activation layer
@@ -137,12 +149,13 @@ def convert_softmax(node, params, layers, lambda_func, node_name, keras_name):
     :return: None
     """
     if len(node.input) != 1:
-        assert AttributeError('More than 1 input for an activation layer.')
+        assert AttributeError("More than 1 input for an activation layer.")
 
     input_0 = ensure_tf_type(layers[node.input[0]], name="%s_const" % keras_name)
 
-    def target_layer(x, axis=params['axis']):
+    def target_layer(x, axis=params["axis"]):
         import tensorflow as tf
+
         return tf.nn.softmax(x, axis=axis)
 
     lambda_layer = keras.layers.Lambda(target_layer, name=keras_name)
@@ -151,6 +164,7 @@ def convert_softmax(node, params, layers, lambda_func, node_name, keras_name):
     lambda_func[keras_name] = target_layer
 
 
+@register_converter("PRelu")
 def convert_prelu(node, params, layers, lambda_func, node_name, keras_name):
     """
     Convert PReLU activation layer
@@ -162,17 +176,12 @@ def convert_prelu(node, params, layers, lambda_func, node_name, keras_name):
     :param keras_name: resulting layer name
     :return: None
     """
-    logger = logging.getLogger('onnx2keras.prelu')
 
     if len(node.input) != 2:
-        assert AttributeError('Activation layer PReLU should have 2 inputs.')
+        assert AttributeError("Activation layer PReLU should have 2 inputs.")
 
     input_0 = ensure_tf_type(layers[node.input[0]], name="%s_const" % keras_name)
     W = ensure_numpy_type(layers[node.input[1]])
-
-    if params['change_ordering']:
-        logger.warning('PRelu + change ordering needs to be fixed after TF graph is built.')
-        logger.warning('It\'s experimental.')
 
     shared_axes = [2, 3]
 

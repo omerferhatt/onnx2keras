@@ -16,11 +16,13 @@ class FMul(nn.Module):
 
 
 @pytest.mark.repeat(10)
-@pytest.mark.parametrize('change_ordering', [True, False])
+@pytest.mark.parametrize("change_ordering", [True, False])
 def test_mul(change_ordering):
     model = FMul()
     model.eval()
 
     input_np1 = np.random.uniform(0, 1, (1, 3, 224, 224))
     input_np2 = np.random.uniform(0, 1, (1, 3, 224, 224))
-    error = convert_and_test(model, (input_np1, input_np2), verbose=False, change_ordering=change_ordering)
+    error = convert_and_test(
+        model, (input_np1, input_np2), verbose=False, change_ordering=change_ordering
+    )

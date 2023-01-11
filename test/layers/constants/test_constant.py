@@ -15,10 +15,12 @@ class FConstant(nn.Module):
         return x + torch.FloatTensor([self.constant])
 
 
-@pytest.mark.parametrize('change_ordering', [True, False])
-@pytest.mark.parametrize('constant', [-1.0, 0.0, 1.0])
+@pytest.mark.parametrize("change_ordering", [True, False])
+@pytest.mark.parametrize("constant", [-1.0, 0.0, 1.0])
 def test_constant(change_ordering, constant):
     model = FConstant(constant)
     model.eval()
     input_np = np.random.uniform(0, 1, (1, 3, 224, 224))
-    error = convert_and_test(model, input_np, verbose=False, change_ordering=change_ordering)
+    error = convert_and_test(
+        model, input_np, verbose=False, change_ordering=change_ordering
+    )

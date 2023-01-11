@@ -20,8 +20,8 @@ class LayerTest(nn.Module):
 # sometimes error is a little bit greater than 1e-5
 # maybe it can be problem described here
 # https://discuss.pytorch.org/t/instance-norm-implement-by-basic-operations-has-different-result-comparing-to-torch-nn-instancenorm2d/87470/2
-@pytest.mark.parametrize('epsilon', [1e-4])
-@pytest.mark.parametrize('change_ordering', [True, False])
+@pytest.mark.parametrize("epsilon", [1e-4])
+@pytest.mark.parametrize("change_ordering", [True, False])
 def test_instancenorm(change_ordering, epsilon):
     inp_size = np.random.randint(10, 100)
 
@@ -29,4 +29,6 @@ def test_instancenorm(change_ordering, epsilon):
     model.eval()
 
     input_np = np.random.uniform(0, 1, (1, inp_size, 224, 224))
-    error = convert_and_test(model, input_np, verbose=False, change_ordering=change_ordering, epsilon=1e-4)
+    error = convert_and_test(
+        model, input_np, verbose=False, change_ordering=change_ordering, epsilon=1e-4
+    )
